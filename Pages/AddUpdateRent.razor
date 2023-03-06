@@ -1,0 +1,103 @@
+@page "/add-rent"
+@page "/update-rent"
+
+@using RentAdvertisementSystem.Models;
+@using RentAdvertisementSystem.Services;
+@inject UserService UserService
+@inject RentService RentService
+@inject NavigationManager NavigationManager
+@inject LocalStorage LocalStorage
+
+<PageTitle>@Title Rent</PageTitle>
+
+<h1>@Title Rent</h1>
+<EditForm Model="@rentItem" OnValidSubmit="OnSubmit">
+    <div class="form-group">
+        <label>Rent Name</label>
+        <InputText class="form-control" placeholder="Rent Name" @bind-Value="rentItem.Name"/>
+    </div>
+    <div class="form-group">
+        <label>Rent Type</label>
+        <InputText class="form-control" placeholder="Rent Type" @bind-Value="rentItem.Type"/>
+    </div>
+    <div class="form-group">
+        <label>Rent Location</label>
+        <InputText class="form-control" placeholder="Rent Location" @bind-Value="rentItem.Location"/>
+    </div>
+    <div class="form-group">
+        <label>Rent Amount</label>
+        <InputText class="form-control" placeholder="Rent Amount" @bind-Value="amount"/>
+    </div>
+    <div class="form-group">
+        <label>Phone</label>
+        <InputText class="form-control" placeholder="Rent Description" @bind-Value="rentItem.Description"/>
+    </div>
+    <button type="submit" class="btn btn-success">@Title</button>
+</EditForm>
+
+@code {
+    protected string Title = "Add";
+    protected RentItem rentItem = new RentItem();
+    protected UserModel userModel = new UserModel();
+    protected string amount = "";
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var rentId = await LocalStorage.GetStringAsync("RentId");
+        if (!string.IsNullOrEmpty(rentId))
+        {
+            bool changeState = false;
+            if (Title != "Update")
+            {
+                changeState = true;
+            }
+            Title = "Update";
+            if (changeState)
+            {
+                rentItem = RentService.GetRentItemById(rentId);
+                amount = rentItem.Value.ToString();
+                StateHasChanged();
+            }
+        } else {
+            bool changeState = false;
+            if (Title != "Add")
+            {
+                changeState = true;
+            }
+            Title = "Add";
+            if (changeState)
+            {
+                rentItem = new RentItem();
+                amount = "0";
+                StateHasChanged();
+            }
+        }
+         await LocalStorage.RemoveAsync("SearchValue");
+    }
+    protected async Task OnSubmit()
+    {
+        rentItem.PostedAt = DateTime.Now;
+        if (string.IsNullOrEmpty(amount))
+        {
+            amount = "0";
+        } else 
+        {
+            rentItem.Value = double.Parse(amount);
+        }
+        
+        if (Title == "Add")
+        {
+            rentItem.UserId = userModel.Id;
+            RentService.PostRentItem(rentItem);
+        } else 
+        {
+            RentService.UpdateRentItem(rentItem);
+        }
+        
+        await LocalStorage.RemoveAsync("RentItem");
+        await LocalStorage.RemoveAsync("SearchValue");
+        await Task.Delay(400);
+        NavigationManager.NavigateTo("/");
+    }
+    
+}

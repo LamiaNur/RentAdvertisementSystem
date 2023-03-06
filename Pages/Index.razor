@@ -1,0 +1,66 @@
+﻿@page "/"
+@using RentAdvertisementSystem.Models;
+@using RentAdvertisementSystem.Services;
+@inject UserService UserService
+@inject RentService RentService
+@inject NavigationManager NavigationManager
+@inject LocalStorage LocalStorage
+
+<PageTitle>Rent Advertisement System</PageTitle>
+
+<h1>All rents</h1>
+@if( rentItems.Count != 0)
+{
+  @foreach (var rentItem in rentItems)
+{
+    <div class="card mb-3">
+    <img src="..." class="card-img-top" alt="...">
+    <div class="card-body">
+        <h5 class="card-title"> @rentItem.Name</h5>
+        <p class="card-text">Rent Type : @rentItem.Type</p>
+        <p class="card-text">Rent Location : @rentItem.Location</p>
+        <p class="card-text">Rent Amount : @rentItem.Value</p>
+        <p class="card-text">Rent Phone : @rentItem.Description </p>
+        <p class="card-text"><small class="text-muted">Posted : @rentItem.PostedAt</small></p>
+    </div>
+    </div>
+}
+} 
+else 
+{
+  <p><em>No items...</em></p>
+}
+
+@code {
+    protected List<RentItem> rentItems = new List<RentItem>();
+    protected UserModel userModel = new UserModel();
+    protected string search = "";
+    protected override async Task OnInitializedAsync()
+    {
+        //var email = await LocalStorage.GetStringAsync("email");
+        //userModel = UserService.GetUserByEmail(email);
+        LocalStorage.RemoveAsync("SearchValue");
+        rentItems = RentService.GetAllRentItems();
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+      await LocalStorage.RemoveAsync("RentItem");
+      string searchValue = await LocalStorage.GetStringAsync("SearchValue");
+      if (search == searchValue) {
+        StateHasChanged();
+        return;
+      }
+      
+      await Task.Delay(200);
+      if (!string.IsNullOrEmpty(searchValue))
+      {
+        rentItems = RentService.GetRentItemsByLocation(searchValue);
+        search = searchValue;
+        await Task.Delay(400);
+      } else {
+        rentItems = RentService.GetAllRentItems();
+        await Task.Delay(500);
+      }
+      StateHasChanged();
+    }
+}

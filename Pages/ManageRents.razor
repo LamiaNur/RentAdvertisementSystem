@@ -1,0 +1,49 @@
+@page "/manage-rents"
+@using RentAdvertisementSystem.Models;
+@using RentAdvertisementSystem.Services;
+@inject UserService UserService
+@inject RentService RentService
+@inject NavigationManager NavigationManager
+@inject LocalStorage LocalStorage
+
+<PageTitle>Manage Rents</PageTitle>
+
+<h1>Manage Rents</h1>
+
+<NavLink class="btn btn-primary" href='/add-rent'>Add Rents</NavLink>
+
+@foreach (var rentItem in rentItems)
+{
+    <div class="card mb-3">
+    <img src="..." class="card-img-top" alt="...">
+    <div class="card-body">
+        <h5 class="card-title"> @rentItem.Name</h5>
+        <p class="card-text">Rent Type : @rentItem.Type</p>
+        <p class="card-text">Rent Location : @rentItem.Location</p>
+        <p class="card-text">Rent Amount : @rentItem.Value</p>
+        <p class="card-text">Phone : @rentItem.Description </p>
+        <p class="card-text"><small class="text-muted">Posted : @rentItem.PostedAt</small></p>
+        <button class="btn btn-warning"   @onclick="(async () => await OnClick(rentItem.Id))">Edit</button>
+    </div>
+    </div>
+}
+
+@code {
+    protected List<RentItem> rentItems = new List<RentItem>();
+    protected UserModel userModel = new UserModel();
+    protected override async Task OnInitializedAsync()
+    {
+        var email = await LocalStorage.GetStringAsync("email");
+        userModel = UserService.GetUserByEmail(email);
+        rentItems = RentService.GetUserRentItems(userModel.Id);
+        await LocalStorage.RemoveAsync("RentId");
+        await Task.Delay(400);
+    }
+  protected async Task OnClick(string rentId)
+  {
+    await LocalStorage.SaveStringAsync("RentId", rentId);
+    await Task.Delay(400);
+    NavigationManager.NavigateTo("/update-rent");
+    await LocalStorage.RemoveAsync("SearchValue");
+  }
+}

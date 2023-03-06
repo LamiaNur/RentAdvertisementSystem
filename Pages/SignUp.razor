@@ -1,0 +1,58 @@
+@page "/signUp"
+@using RentAdvertisementSystem.Models;
+@using RentAdvertisementSystem.Services;
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+@inject LocalStorage LocalStorage
+
+<h1>Sign Up</h1>
+<hr />
+<EditForm Model="@user" OnValidSubmit="SaveUser">
+                
+    <div class="form-group">
+        <label>Name</label>
+        <InputText class="form-control" placeholder="Enter name" @bind-Value="user.Name"/>
+        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+    </div>
+    <div class="form-group">
+        <label>Email address</label>
+        <InputText class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" @bind-Value="user.Email"/>
+        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+    </div>
+    <div class="form-group">
+        <label >Location</label>
+        <InputText class="form-control" placeholder="Enter Location" @bind-Value="user.Location"/>
+        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+    </div>
+    <div class="form-group">
+        <label >Phone</label>
+        <InputText class="form-control" placeholder="Enter phone" @bind-Value="user.Phone"/>
+        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+    </div>
+    <div class="form-group">
+        <label >Password</label>
+        <InputText type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" @bind-Value="user.Password"/>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Sign Up</button>
+</EditForm>
+@code {
+    [Parameter]
+    public string userId { get; set;}
+    protected UserModel user = new UserModel();
+    protected void SaveUser()
+    {
+        if (UserService.RegisterUser(user))
+        {
+            LocalStorage.SaveStringAsync("email", user.Email);
+            Thread.Sleep(500);
+        }
+        LocalStorage.RemoveAsync("RentItem");
+        NavigationManager.NavigateTo("/");
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+    await LocalStorage.RemoveAsync("SearchValue");
+        await LocalStorage.RemoveAsync("RentItem");
+    }
+}

@@ -1,0 +1,64 @@
+﻿@inherits LayoutComponentBase
+@using RentAdvertisementSystem.Models;
+@using RentAdvertisementSystem.Services;
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+@inject LocalStorage LocalStorage
+
+<PageTitle>RentAdvertisementSystem</PageTitle>
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            @* <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a> *@
+            @if (isLoggedIn == false)
+            {
+                <NavLink href="/signup">   
+                <button type="button" class="btn btn-primary">
+                Sign Up
+                </button>
+                </NavLink>
+                <NavLink href="/login">   
+                    <button type="button" class="btn btn-primary">
+                    Log In
+                    </button>
+                </NavLink>
+            }
+            
+                <input class="form-control mr-sm-2" placeholder="Search" @bind-value="searchValue">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit" @onclick="(async () => await OnClick())">Search</button>
+            
+        </div>
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+@code {
+    protected bool isLoggedIn = false;
+    protected string searchValue = "";
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        isLoggedIn = false;
+        var email = await LocalStorage.GetStringAsync("email");
+        await LocalStorage.RemoveAsync("RentItem");
+        if (!string.IsNullOrEmpty(email))
+        {
+            isLoggedIn = true;
+        }
+        StateHasChanged();
+    }
+    protected async Task OnClick()
+    {
+        if (searchValue != null)
+        {
+            await LocalStorage.SaveStringAsync("SearchValue", searchValue);
+            await Task.Delay(200);
+            NavigationManager.NavigateTo("/");
+        }
+    }
+}

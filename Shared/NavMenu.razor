@@ -1,0 +1,78 @@
+﻿@using RentAdvertisementSystem.Models;
+@using RentAdvertisementSystem.Services;
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+@inject LocalStorage LocalStorage
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">RentAdvertisementSystem</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        @* <div class="nav-item px-3">
+            <NavLink class="nav-link" href="counter">
+                <span class="oi oi-plus" aria-hidden="true"></span> Counter
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="fetchdata">
+                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
+            </NavLink>
+        </div> *@
+        @if (isLoggedIn)
+        {
+            <div class="nav-item px-3">
+            <NavLink class="nav-link" href="manage-rents">
+                <span class="oi oi-plus" aria-hidden="true"></span> Manage Rents
+            </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="">
+                <span class="oi oi-list-rich" aria-hidden="true" @onclick="(() => OnClick())"></span> Log Out
+                </NavLink>
+            </div>
+        }
+        
+    </nav>
+</div>
+
+@code {
+    protected bool isLoggedIn = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        isLoggedIn = false;
+        var email = await LocalStorage.GetStringAsync("email");
+        await LocalStorage.RemoveAsync("RentItem");
+        if (!string.IsNullOrEmpty(email))
+        {
+            isLoggedIn = true;
+        }
+        StateHasChanged();
+    }
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+    protected void OnClick()
+    {
+        LocalStorage.RemoveAsync("RentItem");
+        LocalStorage.RemoveAsync("SearchValue");
+        isLoggedIn = false;
+        LocalStorage.RemoveAsync("email");
+        Thread.Sleep(200);
+    }
+}
